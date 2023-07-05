@@ -63,7 +63,7 @@ sensor.run(1)
 #lcd.rotation(2)# 取值范围 [0,3]， 从0到3依次顺时针旋转
 
 green_threshold   = (0,   80,  -70,   -10,   -0,   30)
-yellow_threshold   =   (20,  80,  -40,  40,  20,  100)
+yellow_threshold   =   (20,  80,  -40,  40,  15,  100)
 
 '''
 定义色块的范围
@@ -136,7 +136,7 @@ while True:
             tmp=img.draw_rectangle(b[0:4])
             tmp=img.draw_cross(b[5], b[6])
             c=img.get_pixel(b[5], b[6])
-            print(b.cx(),b.cy())
+            print(b.cx(),b.cy())#返回色块中心的坐标到终端
             if(b.cx()>170):
                 xl_place.value(0)#如果在屏幕右边，则xl_place(8pin)输出低电平
                 xr_place.value(1)#中心点为（160，60）如果在屏幕右边，则xr_place(7pin)输出高电平
