@@ -6,7 +6,9 @@ from fpioa_manager import fm
 #调用fm这个类,从 fpioa_manager 包导入fm 对象，主要用于引脚和外设的映射
 from Maix import GPIO
 #调用GPIO这个类,从包 Maix 导入了 GPIO 这个类， GPIO 外设相关操作
-
+from machine import UART
+#调用UART类uart 模块主要用于驱动开发板上的异步串口，发送方发出数据后，不等接收方发回响应，接着发送下个数据包的通讯方式。
+'''
 xl_place=7
 xr_place=8
 yu_place=9
@@ -20,9 +22,11 @@ fm.register(yd_place,fm.fpioa.GPIO3)
 #调用register函数将引脚与具体的硬件功能（GPIO/I2C/UART/SPIU）绑定
 #不用时可以用unregister函数进行解绑
 '''
+'''
 使用fm(fpioa manager 的缩写)这个内置的对象来注册芯片的外设和引脚的对应关系，
 这里　fm.fpioa.GPIO0 是　K210 的一个 GPIO 外设（注意区分 GPIO（外设） 和引脚（实实在在的硬件引脚）的区别 ），
 所以把 fm.fpioa.GPIO0 注册到了 引脚 IO6；
+'''
 '''
 
 xl_place=GPIO(GPIO.GPIO0,GPIO.OUT)
@@ -31,6 +35,44 @@ yu_place=GPIO(GPIO.GPIO2,GPIO.OUT)
 yd_place=GPIO(GPIO.GPIO3,GPIO.OUT)
 #实例名=类名（ID, MODE, PULL）省略了PULL这个实例类型
 #然后定义一个 GPIO 对象led_r
+'''
+UART1_T=7
+UART1_R=8
+UART2_T=9
+UART2_R=10
+
+# maixduino board_info PIN10/PIN11/PIN12/PIN13 or other hardware IO 10/11/4/3
+fm.register(UART1_T, fm.fpioa.UART1_TX, force=True)
+fm.register(UART1_R, fm.fpioa.UART1_RX, force=True)
+fm.register(UART2_T, fm.fpioa.UART2_TX, force=True)
+fm.register(UART2_R, fm.fpioa.UART2_RX, force=True)
+'''
+register(pin, func, force=True)
+pin: 功能映射引脚
+function : 芯片功能
+force: 强制分配，如果为True，则可以多次对同一个引脚注册;False则不允许同一引脚多次注册。
+默认为True是为了方便IDE多次运行程序使用
+使用fm(fpioa manager 的缩写)这个内置的对象来注册芯片的外设和引脚的对应关系，
+这里　fm.fpioa.GPIO0 是　K210 的一个 GPIO 外设（注意区分 GPIO（外设） 和引脚（实实在在的硬件引脚）的区别 ），
+所以把 fm.fpioa.GPIO0 注册到了 引脚 IO6；
+'''
+
+uart_A = UART(UART.UART1, 115200, timeout=1000, read_buf_len=4096)
+uart_B = UART(UART.UART2, 115200, timeout=1000, read_buf_len=4096)
+
+'''
+uart = machine.UART(uart,baudrate,bits,parity,stop,timeout, read_buf_len)
+uart UART 号，使用指定的 UART，可以通过 machine.UART. 按tab键来补全
+k210 一共有3个 uart，每个 uart 可以进行自由的引脚映射。
+baudrate: UART 波特率
+bits: UART 数据宽度，支持 5/6/7/8 (默认的 REPL 使用的串口（UARTHS）只支持 8 位模式)， 默认 8
+parity: 奇偶校验位，支持 None, machine.UART.PARITY_ODD, machine.UART.PARITY_EVEN
+（默认的 REPL 使用的串口（UARTHS）只支持 None）， 默认 None
+stop: 停止位， 支持 1， 1.5, 2， 默认 1
+timeout: 串口接收超时时间
+read_buf_len： 串口接收缓冲，串口通过中断来接收数据，如果缓冲满了，将自动停止数据接收
+'''
+
 
 lcd.init()
 '''
@@ -79,6 +121,8 @@ b:从蓝色到黄色
 - b*从负数变到正数，对应颜色从蓝色变到黄色。
 - 我们在实际应用中常常将颜色通道的范围-100~+100或-128~127之间。
 '''
+read_strA="60"
+read_strB="160"
 
 while True:
     img = sensor.snapshot()
@@ -136,6 +180,18 @@ while True:
             tmp=img.draw_rectangle(b[0:4])
             tmp=img.draw_cross(b[5], b[6])
             c=img.get_pixel(b[5], b[6])
+            uart_A.write(str(b.cx()))#write#用于使用串口发送数据,发送x坐标
+            uart_B.write(str(b.cy()))#write#用于使用串口发送数据,发送y坐标
+
+            read_dataA = uart_A.read()#read#用于读取串口缓冲中的数据
+            read_dataB = uart_B.read()#read#用于读取串口缓冲中的数据
+
+            if read_dataA:
+                read_strA = read_dataA.decode('utf-8')
+            if read_dataB:
+                read_strB = read_dataB.decode('utf-8')
+            print(read_strA,read_strB)
+            '''
             print(b.cx(),b.cy())#返回色块中心的坐标到终端
             if(b.cx()>170):
                 xl_place.value(0)#如果在屏幕右边，则xl_place(8pin)输出低电平
@@ -155,7 +211,7 @@ while True:
             else:
                 yu_place.value(0)
                 yd_place.value(0)#在中间就都低电平
-
+            '''
 
     '''
     9.2.1. blob.rect()#
@@ -256,4 +312,15 @@ while True:
     RGB565l：返回(x, y)位置的RGB888像素元组(r, g, b)。
 
     Bayer图像: 返回(x, y)位置的像素值。
-    '''
+'''
+uart_A.deinit()
+uart_B.deinit()
+
+'''
+注销 UART 硬件，释放占用的资源
+'''
+del uart_A
+del uart_B
+'''
+删除变量uart_A，解除uart_A对UART的引用
+'''
