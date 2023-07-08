@@ -57,8 +57,8 @@ force: 强制分配，如果为True，则可以多次对同一个引脚注册;Fa
 所以把 fm.fpioa.GPIO0 注册到了 引脚 IO6；
 '''
 
-uart_A = UART(UART.UART1, 115200, timeout=1000, read_buf_len=4096)
-uart_B = UART(UART.UART2, 115200, timeout=1000, read_buf_len=4096)
+uart_A = UART(UART.UART1, 9600, timeout=1000, read_buf_len=4096)
+uart_B = UART(UART.UART2, 9600, timeout=1000, read_buf_len=4096)
 
 '''
 uart = machine.UART(uart,baudrate,bits,parity,stop,timeout, read_buf_len)
@@ -180,16 +180,17 @@ while True:
             tmp=img.draw_rectangle(b[0:4])
             tmp=img.draw_cross(b[5], b[6])
             c=img.get_pixel(b[5], b[6])
-            uart_A.write(str(b.cx()))#write#用于使用串口发送数据,发送x坐标
-            uart_B.write(str(b.cy()))#write#用于使用串口发送数据,发送y坐标
+            uart_A.write(str(b.cx())+'x'+str(b.cy())+'y''\r\n')#write#用于使用串口发送数据,发送x坐标
+#           uart_B.write(str(b.cy()))#write#用于使用串口发送数据,发送y坐标
 
             read_dataA = uart_A.read()#read#用于读取串口缓冲中的数据
             read_dataB = uart_B.read()#read#用于读取串口缓冲中的数据
 
             if read_dataA:
-                read_strA = read_dataA.decode('utf-8')
+                read_strA = read_dataA
             if read_dataB:
-                read_strB = read_dataB.decode('utf-8')
+                read_strB = read_dataB
+
             print(read_strA,read_strB)
             '''
             print(b.cx(),b.cy())#返回色块中心的坐标到终端
