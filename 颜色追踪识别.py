@@ -106,6 +106,7 @@ sensor.run(1)
 
 green_threshold   = (0,   80,  -70,   -10,   -0,   30)
 yellow_threshold   =   (20,  80,  -40,  40,  15,  100)
+red_threshold           = (10, 80, 0, 52, 10, 51)
 
 '''
 定义色块的范围
@@ -125,9 +126,10 @@ read_strA="60"
 read_strB="160"
 
 while True:
+
     img = sensor.snapshot()
     #img=摄像头获取的图像对象
-    blobs = img.find_blobs([yellow_threshold],x_stride=100,y_stride=100)
+    blobs = img.find_blobs([red_threshold],x_stride=100,y_stride=100)
     '''
     Blob 类 – 色块对象#
     色块对象是由 image.find_blobs 返回的。
@@ -180,18 +182,11 @@ while True:
             tmp=img.draw_rectangle(b[0:4])
             tmp=img.draw_cross(b[5], b[6])
             c=img.get_pixel(b[5], b[6])
-            uart_A.write(str(b.cx())+'x'+str(b.cy())+'y''\r\n')#write#用于使用串口发送数据,发送x坐标
-#           uart_B.write(str(b.cy()))#write#用于使用串口发送数据,发送y坐标
-
-            read_dataA = uart_A.read()#read#用于读取串口缓冲中的数据
+            zz=str("%03d"%b.cx())+str("%03d"%b.cy())+'E'
+            uart_B.write(zz.encode("utf-8","strict"))#write#用于使用串口发送数据,发送x坐标
             read_dataB = uart_B.read()#read#用于读取串口缓冲中的数据
-
-            if read_dataA:
-                read_strA = read_dataA
-            if read_dataB:
-                read_strB = read_dataB
-
-            print(read_strA,read_strB)
+            dataB = read_dataB
+            print(dataB)
             '''
             print(b.cx(),b.cy())#返回色块中心的坐标到终端
             if(b.cx()>170):
@@ -321,7 +316,7 @@ uart_B.deinit()
 注销 UART 硬件，释放占用的资源
 '''
 del uart_A
-del uart_B
+#del uart_B
 '''
 删除变量uart_A，解除uart_A对UART的引用
 '''
